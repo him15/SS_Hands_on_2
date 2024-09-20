@@ -1,6 +1,6 @@
 /*
-Name:- Padaliya Shivam
-Roll No:- MT2024107
+Name:- HIMANSHU SHIVHARE
+Roll No:- MT2024058
 Program:- 4. Write a program to measure how much time is taken to execute 100 getppid ( )
 system call. Use time stamp counter.
 */
