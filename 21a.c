@@ -4,59 +4,68 @@ Roll No:- MT2024058
 Program:-21. Write two programs so that both can communicate by FIFO -Use two way communications.
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
-#include <sys/types.h> // Import for `mkfifo` & `open`
-#include <sys/stat.h>  // Import for `mkfifo` & `open`
-#include <fcntl.h>     // Import for `open`
-#include <unistd.h>    // Import for `write`
-#include <stdio.h>     // Import for `perror`
+#define FIFO1 "21fifo1"  // FIFO for sending data
+#define FIFO2 "21fifo2"  // FIFO for receiving data
+#define BUFFER_SIZE 100
 
-void main()
-{
-    char *s; // Data to be sent through the buffer
-    int fd;  // File descriptor of the FIFO file
-    long int size = 100;
-    char *file = "./21a-fifo";
-    mkfifo(file, S_IRWXU);
-    while (1)
-    {
-        fd = open(file, O_WRONLY);
-        if (fd == -1)
-            perror("Error");
-        else
-        {
-            printf("enter message:\n");
-            int l = getline(&s, &size, stdin);
-            write(fd, s, l);
-            close(fd);
-        }
-
-        fd = open(file, O_RDONLY); // File descriptor of the FIFO file
-
-        if (fd == -1)
-            perror("Error");
-        else
-        {
-            char buf;
-            while (read(fd, &buf, 1) > 0)
-                write(1, &buf, 1);
-            write(1, "\n", 1);
-            close(fd);
-        }
+int main() {
+    int fd1, fd2;
+    char buffer[BUFFER_SIZE];
+    char message[] = "Hello from Program 1!";
+    
+    // Open FIFO1 for writing
+    fd1 = open(FIFO1, O_WRONLY);
+    if (fd1 == -1) {
+        perror("open fifo1 for writing failed");
+        exit(EXIT_FAILURE);
     }
+
+    // Open FIFO2 for reading
+    fd2 = open(FIFO2, O_RDONLY);
+    if (fd2 == -1) {
+        perror("open fifo2 for reading failed");
+        close(fd1);
+        exit(EXIT_FAILURE);
+    }
+
+    // Write a message to FIFO1
+    if (write(fd1, message, sizeof(message)) == -1) {
+        perror("write to fifo1 failed");
+        close(fd1);
+        close(fd2);
+        exit(EXIT_FAILURE);
+    }
+    printf("Message sent to FIFO1: %s\n", message);
+
+    // Read a message from FIFO2
+    if (read(fd2, buffer, sizeof(buffer)) == -1) {
+        perror("read from fifo2 failed");
+        close(fd1);
+        close(fd2);
+        exit(EXIT_FAILURE);
+    }
+    printf("Message received from FIFO2: %s\n", buffer);
+
+    // Close FIFOs
+    close(fd1);
+    close(fd2);
+
+    return 0;
 }
 
 /*
+============================================================================
 
-enter message:
-hello
-himanshu
+Output:
 
-enter message:
-How are you
-good
-
-enter message:
-^C
-
+Message sent to FIFO1: Hello from Program 1!
+Message received from FIFO2: Hello from Program 2!
+============================================================================
 */
+
